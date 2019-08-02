@@ -2,6 +2,8 @@ package io.quarkus.it.panache;
 
 import static org.hamcrest.Matchers.is;
 
+import javax.inject.Inject;
+
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -15,6 +17,9 @@ import io.restassured.http.ContentType;
  */
 @QuarkusTest
 public class PanacheFunctionalityTest {
+
+    @Inject
+    PersonRepository personRepository;
 
     @Test
     public void testPanacheFunctionality() throws Exception {
@@ -43,5 +48,11 @@ public class PanacheFunctionalityTest {
     @Test
     public void testPanacheInTest() {
         Assertions.assertEquals(0, Person.count());
+    }
+
+    @DisabledOnSubstrate
+    @Test
+    public void testPanacheAugmentationIntTest() {
+        Assertions.assertEquals(0, personRepository.count());
     }
 }
