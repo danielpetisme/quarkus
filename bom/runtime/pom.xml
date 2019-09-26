@@ -1654,6 +1654,11 @@
                 <version>${wildfly-elytron.version}</version>
             </dependency>
             <dependency>
+              <groupId>org.wildfly.security</groupId>
+              <artifactId>wildfly-elytron-realm-jdbc</artifactId>
+              <version>${wildfly-elytron.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.wildfly.security</groupId>
                 <artifactId>wildfly-elytron-ssl</artifactId>
                 <version>${wildfly-elytron.version}</version>
@@ -2336,6 +2341,11 @@
                         <artifactId>spring-jcl</artifactId>
                     </exclusion>
                 </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>io.quarkus</groupId>
+                <artifactId>quarkus-elytron-security-jdbc</artifactId>
+                <version>${project.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
