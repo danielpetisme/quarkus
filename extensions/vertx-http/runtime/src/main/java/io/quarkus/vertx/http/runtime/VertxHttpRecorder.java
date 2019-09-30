@@ -37,7 +37,13 @@ import io.quarkus.vertx.core.runtime.VertxCoreRecorder;
 import io.quarkus.vertx.core.runtime.config.VertxConfiguration;
 import io.quarkus.vertx.http.runtime.filters.Filter;
 import io.quarkus.vertx.http.runtime.filters.Filters;
-import io.vertx.core.*;
+import io.vertx.core.AbstractVerticle;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.DeploymentOptions;
+import io.vertx.core.Future;
+import io.vertx.core.Handler;
+import io.vertx.core.Verticle;
+import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
@@ -186,6 +192,19 @@ public class VertxHttpRecorder {
                 }
             });
         }
+        router.route().failureHandler(new Handler<RoutingContext>() {
+            @Override
+            public void handle(RoutingContext context) {
+                //TODO: proper error page
+                LOGGER.error("HTTP Request Failed", context.failure());
+                if (context.response().getStatusCode() < 400) {
+                    context.response().setStatusCode(500);
+                    context.response().end("Internal Server Error");
+                } else {
+                    context.response().end();
+                }
+            }
+        });
 
         container.instance(RouterProducer.class).initialize(router);
     }

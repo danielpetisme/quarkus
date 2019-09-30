@@ -4,11 +4,14 @@ import java.io.IOException;
 import java.net.URL;
 import java.security.Permission;
 import java.security.Provider;
+import java.security.Security;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
+
+import javax.enterprise.inject.spi.CDI;
 
 import org.jboss.logging.Logger;
 import org.wildfly.security.WildFlyElytronProvider;
@@ -19,12 +22,15 @@ import org.wildfly.security.auth.server.NameRewriter;
 import org.wildfly.security.auth.server.SecurityDomain;
 import org.wildfly.security.auth.server.SecurityRealm;
 import org.wildfly.security.authz.Attributes;
+import org.wildfly.security.authz.AuthorizationIdentity;
 import org.wildfly.security.authz.MapAttributes;
 import org.wildfly.security.authz.PermissionMappable;
 import org.wildfly.security.authz.PermissionMapper;
+import org.wildfly.security.authz.RoleDecoder;
 import org.wildfly.security.authz.Roles;
 import org.wildfly.security.credential.Credential;
 import org.wildfly.security.credential.PasswordCredential;
+import org.wildfly.security.password.WildFlyElytronPasswordProvider;
 import org.wildfly.security.password.interfaces.ClearPassword;
 import org.wildfly.security.permission.PermissionVerifier;
 
@@ -185,8 +191,15 @@ public class ElytronRecorder {
         log.debugf("buildDomain, realm=%s", realm.getValue());
 
         SecurityDomain.Builder domain = SecurityDomain.builder()
+
                 .addRealm(realmName, realm.getValue())
-                .setRoleDecoder(new DefaultRoleDecoder())
+
+                .setRoleDecoder(new RoleDecoder() {
+                    @Override
+                    public Roles decodeRoles(AuthorizationIdentity authorizationIdentity) {
+                        return CDI.current().select(DefaultRoleDecoder.class).get().decodeRoles(authorizationIdentity);
+                    }
+                })
                 .build()
                 .setDefaultRealmName(realmName)
                 .setPermissionMapper(new PermissionMapper() {
@@ -223,6 +236,7 @@ public class ElytronRecorder {
      * @return the security domain runtime value
      */
     public RuntimeValue<SecurityDomain> buildDomain(RuntimeValue<SecurityDomain.Builder> builder) {
+        Security.addProvider(new WildFlyElytronPasswordProvider());
         return new RuntimeValue<>(builder.getValue().build());
     }
 }
